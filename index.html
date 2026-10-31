@@ -40,9 +40,9 @@ canvas{display:block;position:absolute;left:0;bottom:0;image-rendering:pixelated
 <div id="stage"><canvas id="cv"></canvas><button id="sl" aria-label="Scroll left">◀</button><button id="sr" aria-label="Scroll right">▶</button><button id="su" aria-label="Scroll up">▲</button><button id="sd" aria-label="Scroll down">▼</button><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><div id="note"></div><div id="hint">Pick a material and draw.<br>Pinch or scroll to zoom, drag with two fingers to move.</div></div>
 <div id="bar" role="toolbar" aria-label="Materials and tools"></div>
 <script>
-const E=0,SAND=1,DIRT=2,SEED=3,WATER=4,OIL=5,WAX=6,PLANT=7,FIRE=8,GRASS=9,EGG=10,CRE=11,CB=12,KA=13,KB=14,EGG2=15,WOOD=16,LEAF=17,TIP=18,METAL=19,CLOUD=20,WICK=27,PLANK=28,LAD=29,STORE=30,GREN=31;
-const BASE={1:[224,190,108],2:[110,74,46],3:[168,150,70],4:[48,118,226],5:[74,52,36],6:[246,232,188],7:[58,162,72],8:[255,140,30],9:[92,196,62],10:[250,222,228],11:[240,110,160],12:[150,90,225],13:[170,80,115],14:[104,64,170],15:[196,170,240],16:[104,70,40],17:[48,150,58],18:[150,210,90],19:[132,142,160],20:[240,244,250],21:[28,96,60],22:[240,150,192],23:[228,128,38],24:[228,52,70],25:[252,214,50],26:[172,92,222],27:[196,164,112],28:[240,206,110],29:[196,142,78],30:[226,84,64],31:[58,62,58]};
-const VAR={1:.12,2:.15,3:.3,4:.05,5:.3,6:.04,7:.18,8:.5,9:.2,10:.06,11:.12,12:.12,13:.12,14:.12,15:.06,16:.12,17:.22,18:.1,19:.18,20:.05,21:.2,22:.12,23:.2,24:.1,25:.1,26:.1,27:.12,28:.1,29:.12,30:.3,31:.1};
+const E=0,SAND=1,DIRT=2,SEED=3,WATER=4,OIL=5,WAX=6,PLANT=7,FIRE=8,GRASS=9,EGG=10,CRE=11,CB=12,KA=13,KB=14,EGG2=15,WOOD=16,LEAF=17,TIP=18,METAL=19,CLOUD=20,WICK=27,PLANK=28,LAD=29,STORE=30,GREN=31,STAIR=32;
+const BASE={1:[224,190,108],2:[110,74,46],3:[168,150,70],4:[48,118,226],5:[74,52,36],6:[246,232,188],7:[58,162,72],8:[255,140,30],9:[92,196,62],10:[250,222,228],11:[240,110,160],12:[150,90,225],13:[170,80,115],14:[104,64,170],15:[196,170,240],16:[104,70,40],17:[48,150,58],18:[150,210,90],19:[132,142,160],20:[240,244,250],21:[28,96,60],22:[240,150,192],23:[228,128,38],24:[228,52,70],25:[252,214,50],26:[172,92,222],27:[196,164,112],28:[240,206,110],29:[196,142,78],30:[226,84,64],31:[58,62,58],32:[184,132,78]};
+const VAR={1:.12,2:.15,3:.3,4:.05,5:.3,6:.04,7:.18,8:.5,9:.2,10:.06,11:.12,12:.12,13:.12,14:.12,15:.06,16:.12,17:.22,18:.1,19:.18,20:.05,21:.2,22:.12,23:.2,24:.1,25:.1,26:.1,27:.12,28:.1,29:.12,30:.3,31:.1,32:.14};
 const pack=(r,g,b)=>(255<<24)|(b<<16)|(g<<8)|r,cl=v=>Math.max(0,Math.min(255,v|0));
 const PAL=[];for(const t in BASE){PAL[t]=new Uint32Array(32);for(let s=0;s<32;s++){const k=1+(s-16)/16*VAR[t],c=BASE[t];PAL[t][s]=pack(cl(c[0]*k),cl(c[1]*k),cl(c[2]*k))}}
 const BG=pack(11,15,20),WSURF=pack(140,195,255);
@@ -50,11 +50,11 @@ const DAYLEN=6000;let clk=1800,OPEN=null;   // clk: ticks since the start; one d
 const light=()=>Math.max(0,Math.min(1,.5+.65*Math.sin((clk%DAYLEN)/DAYLEN*6.2832-1.5708)));   // 0 = night, 1 = noon
 const isNight=()=>light()<.25;
 const dimc=(c,k)=>(255<<24)|(((c>>16&255)*k)<<16&16711680)|(((c>>8&255)*k)<<8&65280)|((c&255)*k&255);
-const MATS=[[SAND,'Sand'],[DIRT,'Dirt'],[SEED,'Seeds'],[WATER,'Water'],[OIL,'Oil'],[WAX,'Wax'],[METAL,'Metal'],[WICK,'Wick'],[FIRE,'Lighter'],[EGG,'Pink eggs'],[EGG2,'Purple eggs'],[CLOUD,'Cloud'],[WOOD,'Wood'],[PLANK,'Plank'],[LEAF,'Leaves'],[GRASS,'Grass'],[PLANT,'Plant'],[LAD,'Ladder'],[STORE,'Food store'],[CRE,'Pink creature'],[CB,'Purple creature'],[-1,'Eraser']];
+const MATS=[[SAND,'Sand'],[DIRT,'Dirt'],[SEED,'Seeds'],[WATER,'Water'],[OIL,'Oil'],[WAX,'Wax'],[METAL,'Metal'],[WICK,'Wick'],[FIRE,'Lighter'],[EGG,'Pink eggs'],[EGG2,'Purple eggs'],[CLOUD,'Cloud'],[WOOD,'Wood'],[PLANK,'Plank'],[LEAF,'Leaves'],[GRASS,'Grass'],[PLANT,'Plant'],[LAD,'Ladder'],[STAIR,'Stairs'],[STORE,'Food store'],[CRE,'Pink creature'],[CB,'Purple creature'],[-1,'Eraser']];
 const R=Math.random;
 const NONE=-2,ST={stored:0,rooms:0,cut:0,sealed:0,tunnels:0,domes:0,wound:0,plant:0,old:0,healed:0,towers:0,floors:0,hatch:0,grown:0,eggs:0,drown:0,burn:0,fight:0,bomb:0,ufo:0,starve:0,doused:0,rocketsBuilt:0,launched:0,arrived:0,metal:0,shots:0,shotHits:0,drones:0,droneBombs:0},FL={seal:1,build:1,ladder:0,pantry:1,press:1,storey:0,gren:1,war:1,plant:1,dig:1,jump:1,flee:1,share:1,breed:1,drown:1,mine:1,gun:1,drone:1,rocket:1},TU0={bpct:15,agg:1,cloudAlt:14,ufoAlt:8,bolt:.0003,old:300,maxf:8,act:.12,fight:1,gw:40,ww:60,drown:.012,lay:.8,hatch:.06,gren:.2,starve:.00004},TU={...TU0},FL0={...FL};let speed=1,dbgOn=false,insp=null,ov={war:false,tgt:false};
-const CH=new Float32Array(32),LF=new Uint8Array(32);   // flammability: chance per tick to catch fire, and how long the flame lasts
-[[OIL,.35,22],[WAX,.015,40],[PLANT,.12,18],[GRASS,.15,14],[SEED,.05,10],[EGG,.02,10],[CRE,.3,10],[CB,.3,10],[KA,.35,10],[KB,.35,10],[EGG2,.02,10],[WOOD,.05,28],[LEAF,.12,10],[TIP,.1,10],[21,.12,10],[22,.12,10],[23,.14,10],[24,.1,8],[25,.1,8],[26,.1,8],[WICK,.06,10],[PLANK,.07,34],[LAD,.08,26],[STORE,.08,10]].forEach(([t,c,l])=>{CH[t]=c;LF[t]=l});
+const CH=new Float32Array(33),LF=new Uint8Array(33);   // flammability: chance per tick to catch fire, and how long the flame lasts
+[[OIL,.35,22],[WAX,.015,40],[PLANT,.12,18],[GRASS,.15,14],[SEED,.05,10],[EGG,.02,10],[CRE,.3,10],[CB,.3,10],[KA,.35,10],[KB,.35,10],[EGG2,.02,10],[WOOD,.05,28],[LEAF,.12,10],[TIP,.1,10],[21,.12,10],[22,.12,10],[23,.14,10],[24,.1,8],[25,.1,8],[26,.1,8],[WICK,.06,10],[PLANK,.07,34],[LAD,.08,26],[STORE,.08,10],[STAIR,.08,26]].forEach(([t,c,l])=>{CH[t]=c;LF[t]=l});
 let scv=0,camAuto=true;   // until the player scrolls or pans, the view stays centred on the middle of the map, whatever happens to the window size
 let T,S,A,HI,AG,HU,WT,SD,AN,AC,BK,RK,ID,NM,GN,idc=0,mv,W=0,H=0,VW=0,camX=0,sc=0,CSZ=4,VHr=0,zlv=innerWidth<640?1:2,rainOn=false,dirty=0,pop=[0,0],cnt=[0,0],CAP=50000,clouds=[],ZL=[2,3,4,6,8,12],ZMIN=2,ZMAX=16,vy=0,fx=0,zs=0,img,buf,f=0,sel=SAND,brush=4,paused=false,ptr=null,last=null;
 zs=ZL[zlv];
@@ -202,7 +202,7 @@ function soak(i,x,b,bt){   // water sitting on dirt (or beside it) is absorbed a
   if(R()<.04){const d=R()<.5?-1:1,nx=x+d;if(nx>=0&&nx<W&&T[i+d]===DIRT&&A[i+d]<=191){A[i+d]+=64;T[i]=0;return true}}
   return false}
 // ---- trees: a TIP grows up leaving WOOD, sprouts side branches (HI 1/2 = branch direction), then ends in a LEAF crown
-const LT=[LEAF,21,22,23],hold=c=>c===WOOD||c===TIP||c===PLANK||c===LAD||c===LEAF||c===WAX||c===DIRT||c===SAND||c===GRASS||c===PLANT||c>=21&&c<=26;   // wax is climbable and walkable footing, as well as a surface to cling to and jump from
+const LT=[LEAF,21,22,23],hold=c=>c===WOOD||c===TIP||c===PLANK||c===LAD||c===STAIR||c===LEAF||c===WAX||c===DIRT||c===SAND||c===GRASS||c===PLANT||c>=21&&c<=26;   // wax is climbable and walkable footing, as well as a surface to cling to and jump from
 function crown(i,x,y,r,lt){
   for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
     const nx=x+dx,ny=y+dy;if(nx<0||nx>=W||ny<0||ny>=H||dx*dx+dy*dy>r*r+1||R()<.15)continue;
@@ -419,6 +419,8 @@ const own=j=>{if(curMe<0)return false;const x=j%W,y=j/W|0;for(const t of TW[curM
 const pass=c=>c===0||(isC(c)&&curMe>=0&&TEAM[c]===curMe);   // friends can share a cell: a creature simply swaps places with a friend in the way
 function go(i,x,y,dx,dy){   // one step toward (dx,dy): walk, dig or hop. Returns the new index (same index = dug), -1 = blocked
   if(dy<0){
+    if(T[i-W]===STAIR){sw(i,i-W);return i-W}
+    for(const sd of [dx||-1,-(dx||-1)])if(x+sd>=0&&x+sd<W&&T[i-W+sd]===STAIR){sw(i,i-W+sd);return i-W+sd}
     if(!dx)dx=R()<.5?-1:1;const nx=x+dx;if(y<1||nx<0||nx>=W)return -1;
     if(i>=2*W&&T[i-W]===PLANK&&T[i-2*W]===0&&own(i-W)){sw(i,i-2*W);return i-2*W}   // climb straight through the floor or roof of their own finished building
     if(T[i-W]===LAD){sw(i,i-W);return i-W}   // ladders are climbed straight through
@@ -432,6 +434,8 @@ function go(i,x,y,dx,dy){   // one step toward (dx,dy): walk, dig or hop. Return
     for(const k of [u,v]){const c=T[k];if(c===LEAF||c===TIP||c>=21&&c<=23||(c===WOOD&&T[k-W]!==WOOD)){T[k]=0;if(c===WOOD||c===TIP)dirty=40;return i}}   // hack a way up through leaves and branches, taking a tree apart from the top
     if(dig(u))return i;if(dig(v))return i;
     if(pass(T[u])&&pass(T[v])){sw(i,v);return v}return -1}
+  if(dy>0&&T[i+W]===STAIR){sw(i,i+W);return i+W}
+  for(const sd of [dx||-1,-(dx||-1)])if(x+sd>=0&&x+sd<W&&T[i+W+sd]===STAIR){sw(i,i+W+sd);return i+W+sd}
   if(dy>0&&T[i+W]===LAD){sw(i,i+W);return i+W}
   if(dy>0&&i<W*H-2*W&&T[i+W]===PLANK&&T[i+2*W]===0&&own(i+W)){sw(i,i+2*W);return i+2*W}
   if(dy>0&&dig(i+W))return i;                          // dig down, then fall in
@@ -440,6 +444,7 @@ function go(i,x,y,dx,dy){   // one step toward (dx,dy): walk, dig or hop. Return
   const j=i+dx,c=T[j];
   if(pass(c)){sw(i,j);return j}
   if(c===LEAF||c===GRASS||c===PLANT||c>=21&&c<=26){T[j]=0;sw(i,j);return j}   // walk straight through foliage
+  if(c===STAIR){sw(i,j);return j}
   if(c===LAD&&nx+dx>=0&&nx+dx<W&&pass(T[j+dx])){sw(i,j+dx);return j+dx}   // ladders do not block the way: walk straight through
   if(c===WAX){for(let h=1;h<=3;h++){if(y-h<1||!pass(T[i-h*W]))break;if(pass(T[j-h*W])){sw(i,j-h*W);return j-h*W}}}   // clamber up onto wax ledges, up to 3 high
   if(c===PLANK&&nx+dx>=0&&nx+dx<W&&T[j+dx]===0&&own(j)){sw(i,j+dx);return j+dx}   // walk through the wall of their own finished building as if it were a door
@@ -538,14 +543,25 @@ function bridge(me,a,b){   // a plank walkway joining two upper rooms of the sam
   for(let xx=x1;xx<=x2;xx++){put((y+1)*W+xx,PLANK,0);for(let dy=-3;dy<=0;dy++)T[(y+dy)*W+xx]=0}
   for(const [xx,dd] of [[a.x+5,1],[b.x-5,-1]])for(const dy of [-1,0]){const j=(y+dy)*W+xx;if(T[j]===PLANK)T[j]=0}
   a.br=(a.br||0)+1;b.br=(b.br||0)+1;ST.bridges=(ST.bridges||0)+1;return true}
-function cellar(me,r){   // an underground room dug beneath a ground room, joined to it by a ladder shaft
+function cellar(me,r){   // an underground room with a zig-zag stairwell beside the building
   const k=r.cel||0,gb=r.gb+8+6*k;if(gb+3>=H-1)return false;
   if(!newRoom(me,r.x,gb,0,1,true,r.b))return false;
   const c=TW[me][TW[me].length-1];c.deep=true;r.cel=k+1;
+  const soft=t=>t===0||t===DIRT||t===SAND||t===WAX||t===GRASS||t===PLANT||t===SEED||t===WATER||t===OIL||t===WOOD||t===LEAF||t===TIP||t>=21&&t<=26;
+  const makePath=side=>{const sx=r.x+side*7,y0=r.gb,y1=gb-2;if(sx<2||sx>W-3)return null;const path=[];
+    for(let y=y0;y<=y1;y++){const n=y-y0,x=sx+(n%2?-side:0);if(x<2||x>W-3||!soft(T[y*W+x]))return null;path.push([x,y])}
+    const endX=path[path.length-1][0],doorX=r.x+side*5,lo=Math.min(endX,doorX),hi=Math.max(endX,doorX);
+    for(let x=lo;x<=hi;x++)if(!soft(T[(gb-2)*W+x])||!soft(T[(gb-1)*W+x]))return null;
+    return{side,path,endX,doorX,lo,hi}};
+  const stair=makePath(r.x<W/2?1:-1)||makePath(r.x<W/2?-1:1);
   for(let dy=-5;dy<=2;dy++)for(let dx=-6;dx<=6;dx++){const j=(gb+dy)*W+r.x+dx,t=T[j];
-    if(Math.abs(dx)===5&&(dy===-1||dy===-2)&&t===0){put(j,PLANK,0);continue}   // an underground room has no side doors: only the ladder shaft leads in
-    if((dy===-5||dy===2||Math.abs(dx)===6)&&(t===DIRT||t===SAND||t===0||t===SEED||t===WATER||t===OIL))put(j,WAX,0)}   // a one-cell wax lining keeps soil from touching or sliding into the room
-  for(let row=gb-4;row>=r.gb-1;row--){const j=row*W+r.x-3,t=T[j];if(isC(t))continue;if(t===0||t===DIRT||t===SAND||t===WAX||t===PLANK||t===GRASS||t===PLANT||t===LAD)put(j,LAD,0)}
+    if(Math.abs(dx)===5&&(dy===-1||dy===-2)&&t===0){if(!stair||dx!==stair.side*5)put(j,PLANK,0);continue}
+    if((dy===-5||dy===2||Math.abs(dx)===6)&&(t===DIRT||t===SAND||t===0||t===SEED||t===WATER||t===OIL))put(j,WAX,0)}   // wax lining keeps soil from sliding into the cellar
+  if(stair){
+    for(const [x,y] of stair.path)put(y*W+x,STAIR,0);
+    for(let x=stair.lo;x<=stair.hi;x++){const j=(gb-2)*W+x;if(!isC(T[j]))T[j]=0;const floor=(gb-1)*W+x;if(!isC(T[floor]))put(floor,PLANK,0)}
+    ST.stairs=(ST.stairs||0)+1;
+  }else{for(let row=gb-4;row>=r.gb-1;row--){const j=row*W+r.x-3,t=T[j];if(isC(t))continue;if(t===0||t===DIRT||t===SAND||t===WAX||t===PLANK||t===GRASS||t===PLANT||t===LAD)put(j,LAD,0)}}
   return true}
 function growBase(me,i,x,y,bt){   // 1 = built something, 2 = walking to the next building spot (bdx), 0 = nothing to do
   if(!FL.build||TW[me].length>=600)return 0;
@@ -851,7 +867,7 @@ function step(){
     const x=fl?k:W-1-k,i=y*W+x,t=T[i];
     if(!t||t===WAX||mv[i]===f)continue;
     if(t===METAL)continue;
-    if(t>=32){const b=i+W,bt=T[b];if(b<W*H&&(bt===0||bt===WATER||bt===OIL))sw(i,b);else T[i]=t-32;continue}   // loose tree debris falls, then settles
+    if(t>=32){if(t===STAIR)continue;const b=i+W,bt=T[b];if(b<W*H&&(bt===0||bt===WATER||bt===OIL))sw(i,b);else T[i]=t-32;continue}   // loose tree debris falls, then settles
     if(t===PLANT||t===GRASS){if(i<W*H-W){let k=i+W,q=0;while(q++<60&&k<W*H-W&&(T[k]===PLANT||T[k]===GRASS))k+=W;const u=T[k];if((u===0||u===WATER||u===OIL||u===FIRE)&&!(T[i-W]===PLANT||T[i-W]===GRASS)&&R()<.04){T[i]=0;continue}}   // a plant (or stack of plants) cut off from the ground withers away from the top down
       if(t===PLANT)grow(i,x,y);else{if(R()<.004)spread(i,x,y);if(R()<.00006&&y>0&&T[i-W]===0)put(i-W,SEED,0)}continue}   // grass sheds a few seeds
     if(t===FIRE){fire(i,x,y);continue}
@@ -909,8 +925,8 @@ function draw(){
     if(t===0){const u=T[i+W];if(u===CRE||u===CB){c=headCol(i+W,u);if(dk<1)c=dimc(c,dk)}
       else if(u===0&&(T[i+2*W]===CRE||T[i+2*W]===CB)&&RK[i+2*W]&128){c=((f>>3)&1)?pack(255,226,90):pack(255,184,30);if(dk<1)c=dimc(c,dk)}   // leader's crown
       else if(OPEN[camX+x]){c=SKYC;if(star){const h=Math.imul(camX+x,73856093)^Math.imul(y,19349663);if((h>>>0)%1400===0)c=pack(95,105,135)}}else c=BG}
-    else{if(t===DIRT||t===PLANK||t===METAL||t===WAX)OPEN[camX+x]=0;
-      if(t===WATER&&i>=W&&T[i-W]===0)c=WSURF;else if(t===WICK&&A[i])c=PAL[8][S[i]];else if((t===DIRT||t===SEED)&&A[i]>30)c=PAL[t][S[i]>>1];else if((t===CRE||t===CB)&&A[i]&32)c=PAL[t][S[i]>>1];else c=PAL[t&31][S[i]];
+    else{if(t===DIRT||t===PLANK||t===METAL||t===WAX||t===STAIR)OPEN[camX+x]=0;
+      if(t===WATER&&i>=W&&T[i-W]===0)c=WSURF;else if(t===WICK&&A[i])c=PAL[8][S[i]];else if((t===DIRT||t===SEED)&&A[i]>30)c=PAL[t][S[i]>>1];else if((t===CRE||t===CB)&&A[i]&32)c=PAL[t][S[i]>>1];else c=PAL[t===STAIR?STAIR:t&31][S[i]];
       if(SEAS)c=seasonTint(c,t,i);
       if(dk<1&&t!==FIRE&&!(t===WICK&&A[i]))c=dimc(c,dk)}
     buf[o]=c}}
