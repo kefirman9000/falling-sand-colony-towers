@@ -52,11 +52,11 @@ const isNight=()=>light()<.25;
 const dimc=(c,k)=>(255<<24)|(((c>>16&255)*k)<<16&16711680)|(((c>>8&255)*k)<<8&65280)|((c&255)*k&255);
 const MATS=[[SAND,'Sand'],[DIRT,'Dirt'],[SEED,'Seeds'],[WATER,'Water'],[OIL,'Oil'],[WAX,'Wax'],[METAL,'Metal'],[WICK,'Wick'],[FIRE,'Lighter'],[EGG,'Pink eggs'],[EGG2,'Purple eggs'],[CLOUD,'Cloud'],[WOOD,'Wood'],[PLANK,'Plank'],[LEAF,'Leaves'],[GRASS,'Grass'],[PLANT,'Plant'],[LAD,'Ladder'],[STAIR,'Stairs'],[STORE,'Food store'],[CRE,'Pink creature'],[CB,'Purple creature'],[-1,'Eraser']];
 const R=Math.random;
-const NONE=-2,ST={stored:0,rooms:0,cut:0,sealed:0,tunnels:0,domes:0,wound:0,plant:0,old:0,healed:0,towers:0,floors:0,hatch:0,grown:0,eggs:0,drown:0,burn:0,fight:0,bomb:0,ufo:0,starve:0,doused:0,rocketsBuilt:0,launched:0,arrived:0,metal:0,shots:0,shotHits:0,drones:0,droneBombs:0},FL={seal:1,build:1,ladder:0,pantry:1,press:1,storey:0,gren:1,war:1,plant:1,dig:1,jump:1,flee:1,share:1,breed:1,drown:1,mine:1,gun:1,drone:1,rocket:1},TU0={bpct:15,agg:1,cloudAlt:14,ufoAlt:8,bolt:.0003,old:300,maxf:8,act:.12,fight:1,gw:40,ww:60,drown:.012,lay:.8,hatch:.06,gren:.2,starve:.00004},TU={...TU0},FL0={...FL};let speed=1,dbgOn=false,insp=null,ov={war:false,tgt:false};
+const NONE=-2,ST={stored:0,rooms:0,cut:0,sealed:0,tunnels:0,domes:0,wound:0,plant:0,old:0,healed:0,towers:0,floors:0,hatch:0,grown:0,eggs:0,drown:0,burn:0,fight:0,bomb:0,ufo:0,starve:0,doused:0,rocketsBuilt:0,launched:0,arrived:0,metal:0,shots:0,shotHits:0,drones:0,droneBombs:0},FL={seal:1,build:1,ladder:0,pantry:1,press:1,storey:0,gren:1,war:1,plant:1,dig:1,jump:1,flee:1,share:1,breed:1,drown:1,mine:1,gun:1,drone:1,rocket:1},TU0={bpct:15,agg:1,cloudAlt:14,ufoAlt:8,bolt:.0003,old:300,maxf:1000,act:.12,fight:1,gw:40,ww:60,drown:.012,lay:.8,hatch:.06,gren:.2,starve:.00004},TU={...TU0},FL0={...FL};let speed=1,dbgOn=false,insp=null,ov={war:false,tgt:false};
 const CH=new Float32Array(33),LF=new Uint8Array(33);   // flammability: chance per tick to catch fire, and how long the flame lasts
 [[OIL,.35,22],[WAX,.015,40],[PLANT,.12,18],[GRASS,.15,14],[SEED,.05,10],[EGG,.02,10],[CRE,.3,10],[CB,.3,10],[KA,.35,10],[KB,.35,10],[EGG2,.02,10],[WOOD,.05,28],[LEAF,.12,10],[TIP,.1,10],[21,.12,10],[22,.12,10],[23,.14,10],[24,.1,8],[25,.1,8],[26,.1,8],[WICK,.06,10],[PLANK,.07,34],[LAD,.08,26],[STORE,.08,10],[STAIR,.08,26]].forEach(([t,c,l])=>{CH[t]=c;LF[t]=l});
 let scv=0,camAuto=true;   // until the player scrolls or pans, the view stays centred on the middle of the map, whatever happens to the window size
-let T,S,A,HI,AG,HU,WT,SD,AN,AC,BK,RK,ID,NM,GN,idc=0,mv,W=0,H=0,VW=0,camX=0,sc=0,CSZ=4,VHr=0,zlv=innerWidth<640?1:2,rainOn=false,dirty=0,pop=[0,0],cnt=[0,0],CAP=50000,clouds=[],ZL=[2,3,4,6,8,12],ZMIN=2,ZMAX=16,vy=0,fx=0,zs=0,img,buf,f=0,sel=SAND,brush=4,paused=false,ptr=null,last=null;
+let T,S,A,HI,AG,HU,WT,SD,AN,AC,BK,RK,ID,NM,GN,idc=0,mv,W=0,H=0,VW=0,camX=0,sc=0,CSZ=4,VHr=0,zlv=innerWidth<640?1:2,rainOn=false,dirty=0,pop=[0,0],cnt=[0,0],CAP=Infinity,clouds=[],ZL=[2,3,4,6,8,12],ZMIN=2,ZMAX=16,vy=0,fx=0,zs=0,img,buf,f=0,sel=SAND,brush=4,paused=false,ptr=null,last=null;
 zs=ZL[zlv];
 const note=document.getElementById('note');
 const tick=document.createElement('div');tick.id='ticker';document.getElementById('stage').appendChild(tick);
@@ -71,7 +71,7 @@ for(const ev of ['pointerdown','click','keydown','wheel','touchstart'])document.
 
 // ---- grid
 function resize(){
-  const r=stage.getBoundingClientRect(),cs=zs,vw=Math.max(32,Math.ceil(r.width/cs)+1),nh0=Math.max(H,260,r.height/cs|0),nh=T&&nh0>H?Math.ceil(nh0/32)*32:nh0,nw0=Math.max(W,Math.min(1500,Math.max(vw*3,600))),nw=T&&nw0>W?Math.min(1500,Math.ceil(nw0/100)*100):nw0;   // the world is ~3 screens wide
+  const r=stage.getBoundingClientRect(),cs=zs,vw=Math.max(32,Math.ceil(r.width/cs)+1),nh0=Math.max(H,260,r.height/cs|0),nh=T&&nh0>H?Math.ceil(nh0/32)*32:nh0,nw0=Math.max(W,Math.min(5000,Math.max(vw*3,1800))),nw=T&&nw0>W?Math.min(5000,Math.ceil(nw0/100)*100):nw0;   // the world is ~3 screens wide
   VHr=Math.ceil(r.height/cs);
   if(nw===W&&nh===H&&vw===VW&&cs===CSZ)return;
   if(T&&nw===W&&nh===H){   // only the view changed (zoom or window size): keep the whole world as it is and just resize the picture, so pinching stays smooth
@@ -462,7 +462,7 @@ function baby(i,x,y,b,bt,t){
   if(R()<TU.starve){life(ID[i],'starved as a baby');compost(i);T[i]=0;ST.starve++;hungry[TEAM[t]]++;return}   // unfed babies slowly starve                                       // babies never leave the den until fed
 }
 // ---- towers: organised multi-storey buildings (13 wide, 5 rows per floor, ladder up the middle, a divider making two rooms per floor)
-const TW=[[],[]],MAXTW=5;
+const TW=[[],[]];
 const feed=k=>{if(HU[k]){HU[k]=0;ST.healed++;life(ID[k],'was healed')}if(AG[k]>TU.old)AG[k]=Math.max(TU.old+1,AG[k]-12)};   // a meal heals the hurt and keeps the elderly going
 const inRoom=(me,x,y)=>{for(const t of TW[me]){if(t.tun&&Math.abs(x-t.x)<=17&&y>t.gb&&y<=t.gb+6)return true}for(const t of TW[me])if(Math.abs(x-t.x)<=(t.room?5:6)&&y<=t.gb&&y>=t.gb-(t.dome?7:4))return true;return false};   // standing inside one of the colony's rooms
 const roofed=i=>{for(let q=1;q<=8;q++){const k=i-q*W;if(k<0)return false;const c=T[k];if(c===PLANK||c===WOOD||c===LEAF||c===DIRT||c>=21&&c<=23)return true}return false};   // eggs are only laid under a roof, canopy or soil
@@ -474,7 +474,7 @@ const myRoom=(me,i)=>{const g=TW[me].filter(t=>t.room&&(!t.lvl||t.tree));return 
 const nearBase=(me,x,y)=>{for(const t of TW[me])if(Math.abs(x-t.x)<=(t.dome?9:10)&&y>=t.gb-14&&y<=t.gb+3)return true;return false};   // on or beside one of the colony's own buildings
 const towerCap=me=>TW[me].reduce((a,t)=>a+t.fl*8,0);
 // ---- bases: rows of ordinary rooms (flat plank floor, vertical walls, solid roof, open interior, a doorway low in each side wall), added one at a time
-let bdx=0;const MAXROOMS=12;
+let bdx=0;
 const isTree=c=>c===WOOD||c===TIP||c===LEAF||c>=21&&c<=23;
 function harvest(x,y,nw,nl){   // fell trees from the top down (nearest tallest first, moving to another tree if one runs short); 1 = got the lumber, 0 = not enough, 2 = no trees around at all
   const cells=[];
@@ -564,13 +564,13 @@ function cellar(me,r){   // an underground room with a zig-zag stairwell beside 
   }else{for(let row=gb-4;row>=r.gb-1;row--){const j=row*W+r.x-3,t=T[j];if(isC(t))continue;if(t===0||t===DIRT||t===SAND||t===WAX||t===PLANK||t===GRASS||t===PLANT||t===LAD)put(j,LAD,0)}}
   return true}
 function growBase(me,i,x,y,bt){   // 1 = built something, 2 = walking to the next building spot (bdx), 0 = nothing to do
-  if(!FL.build||TW[me].length>=600)return 0;
+  if(!FL.build)return 0;
   const all=TW[me].filter(t=>t.room&&!t.lvl&&!t.deep),groups=new Map();
   for(const r of all){if(!groups.has(r.b))groups.set(r.b,[]);groups.get(r.b).push(r)}
   let best=null,bd=1e9;
-  for(const g of groups.values()){if(g.length>=6)continue;let sx=0;for(const r of g)sx+=r.x;const d=Math.abs(sx/g.length-x);if(d<bd){bd=d;best=g}}
+  for(const g of groups.values()){let sx=0;for(const r of g)sx+=r.x;const d=Math.abs(sx/g.length-x);if(d<bd){bd=d;best=g}}
   if(!best){   // every base is full: found a new one well away from the others
-    if(groups.size>=8)return 0;
+    
     let nd=1e9,nx=x;for(const r of all){const d=Math.abs(r.x-x);if(d<nd){nd=d;nx=r.x}}
     if(!all.length||nd>=(adventurer(i)?220:46+(S[i]%5)*25)){if(bt!==0&&R()<.15&&newRoom(me,x,y,0,1,false,BSE[me].n++))return 1;return 0}
     bdx=adventurer(i)?away(me):R()<.7?away(me):(sg(x-nx)||1);return 2}   // new bases are mostly founded on the side away from the rival
@@ -582,7 +582,7 @@ function growBase(me,i,x,y,bt){   // 1 = built something, 2 = walking to the nex
   if(R()<.55){const cs=g.filter(r=>r.gb+8+6*(r.cel||0)+4<H-1);if(cs.length){cs.sort((p,q)=>(p.cel||0)-(q.cel||0)||Math.abs(p.x-x)-Math.abs(q.x-x));const r=cs[0];
     if(Math.abs(x-r.x)<=24&&y>=r.gb-12&&y<=r.gb+3){if(cellar(me,r))return 1;r.cel=(r.cel||0)+1;return 0}bdx=sg(r.x-x)||1;return 2}}   // dig a cellar under a room (walk over to it first)
   if(R()<.4){   // build upwards: stack another storey on a room that has none above it (up to 3 storeys, joined by an outside ladder)
-    const cand=TW[me].filter(r=>r.room&&!r.deep&&!r.up&&r.lvl<24&&r.b===id&&r.gb-5>=20&&(r.lvl||0)>=0&&TW[me].filter(t=>t.room&&t.lvl).length<300&&r.gb<=gb);
+    const cand=TW[me].filter(r=>r.room&&!r.deep&&!r.up&&r.b===id&&r.gb-5>=20&&(r.lvl||0)>=0&&r.gb<=gb);
     if(R()<.6)cand.sort((p,q)=>(q.lvl||0)-(p.lvl||0)||Math.abs(p.x-x)-Math.abs(q.x-x));else cand.sort((p,q)=>(p.lvl||0)-(q.lvl||0)||Math.abs(p.x-x)-Math.abs(q.x-x));   // mostly keep raising the tallest tower, sometimes add a first floor elsewhere
     const up=cand[0];
     if(up){if(Math.abs(x-up.x)<=24&&y>=gb-12&&y<=gb+3){const sd=up.lvl?up.side:(up.x===hi?1:-1);if(newRoom(me,up.x,up.gb-5,(up.lvl||0)+1,sd))return 1;up.up=1;return 0}bdx=sg(up.x-x)||1;return 2}}
@@ -1254,12 +1254,12 @@ const pMat=pre('mat');
 const pPop=pre('pop');const hc=$('canvas');hc.width=300;hc.height=50;hc.style.cssText='width:100%;height:50px;image-rendering:auto;position:static;cursor:default;background:#0003;border-radius:6px';SC.pop.b.appendChild(hc);
 const FLS=[['seal','Seal paths with blocks when threatened'],['build','Build towers, domes, tunnels & treehouses'],['ladder','Lay ladders'],['pantry','Stock food pantries'],['press','Press food into oil'],['storey','Add second storeys'],['gren','Throw grenades'],['war','Colonies arm warriors'],['plant','Plant seeds'],['dig','Dig / tunnel'],['jump','Jump & cling'],['flee','Flee fire'],['share','Share food & oil'],['breed','Lay eggs'],['drown','Drowning is deadly'],['mine','Warriors mine buried metal'],['gun','Warriors shoot guns (needs metal)'],['drone','Build attack drones (needs metal)'],['rocket','Build rockets and fly to space (needs metal)']];
 for(const [k,n] of FLS){const l=$('label','ck','<input type="checkbox"'+(FL[k]?' checked':'')+'> '+n);l.firstChild.onchange=e=>FL[k]=e.target.checked?1:0;SC.ab.b.appendChild(l)}
-const TS=[['agg','Aggression ×',0,3,.1],['bpct','Extra % of colony devoted to breeding',0,100,1],['cloudAlt','Cloud margin above tallest 10% of terrain (cells)',0,120,1],['ufoAlt','UFO margin above the same line (cells)',0,120,1],['bolt','Lightning rate (rare)',0,.003,.0001],['old','Age when creatures become elderly',30,1200,10],['maxf','Max tower floors',1,12,1],['act','Action rate (per tick)',.02,.5,.01],['fight','Fight lethality ×',0,4,.1],['gw','Grudge needed to arm',5,100,1],['ww','Crowding needed to arm',10,100,1],['drown','Drown rate',0,.1,.002],['lay','Egg-laying chance',0,1,.05],['hatch','Den hatch rate',0,.5,.01],['gren','Grenade throw chance',0,1,.05],['starve','Baby starve rate',0,.002,.00002],['cap','Population cap / colony',100,200000,100]];
+const TS=[['agg','Aggression ×',0,3,.1],['bpct','Extra % of colony devoted to breeding',0,100,1],['cloudAlt','Cloud margin above tallest 10% of terrain (cells)',0,120,1],['ufoAlt','UFO margin above the same line (cells)',0,120,1],['bolt','Lightning rate (rare)',0,.003,.0001],['old','Age when creatures become elderly',30,1200,10],['maxf','Max tower floors',1,1000,1],['act','Action rate (per tick)',.02,.5,.01],['fight','Fight lethality ×',0,4,.1],['gw','Grudge needed to arm',5,100,1],['ww','Crowding needed to arm',10,100,1],['drown','Drown rate',0,.1,.002],['lay','Egg-laying chance',0,1,.05],['hatch','Den hatch rate',0,.5,.01],['gren','Grenade throw chance',0,1,.05],['starve','Baby starve rate',0,.002,.00002],];
 const sync=[];
 for(const [k,n,lo,hi,st] of TS){const l=$('label','',n+' <b></b><input type="range" min="'+lo+'" max="'+hi+'" step="'+st+'">'),r=l.querySelector('input'),b=l.querySelector('b');
   const get=()=>k==='cap'?CAP:TU[k],upd=()=>{r.value=get();b.textContent=+(+get()).toPrecision(3)};
   r.oninput=e=>{if(k==='cap')CAP=+e.target.value;else TU[k]=+e.target.value;upd()};upd();sync.push(upd);SC.tune.b.appendChild(l)}
-const rs=$('button','','Reset tuning & abilities');rs.type='button';rs.onclick=()=>{Object.assign(TU,TU0);CAP=50000;sync.forEach(f=>f());Object.assign(FL,FL0);SC.ab.b.querySelectorAll('input').forEach((i,n)=>i.checked=!!FL[FLS[n][0]])};SC.tune.b.appendChild(rs);
+const rs=$('button','','Reset tuning & abilities');rs.type='button';rs.onclick=()=>{Object.assign(TU,TU0);CAP=Infinity;sync.forEach(f=>f());Object.assign(FL,FL0);SC.ab.b.querySelectorAll('input').forEach((i,n)=>i.checked=!!FL[FLS[n][0]])};SC.tune.b.appendChild(rs);
 SC.insp.b.appendChild($('small','','Pick “Move / none”, then tap a creature. It is tracked as it moves.'));
 const pIn=pre('insp');const row=$('div','row');SC.insp.b.appendChild(row);
 const bt=(t,f)=>{const b=$('button','',t);b.type='button';b.onclick=f;row.appendChild(b);return b};
@@ -1299,7 +1299,7 @@ function refresh(){
   if(SC.mat.d.open)pMat.textContent=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,v])=>(NM[k]||k).padEnd(13)+v).join('\n');
   const nm=["Pink","Purple"];
   hist[0].push(pop[0]);hist[1].push(pop[1]);if(hist[0].length>300){hist[0].shift();hist[1].shift()}
-  if(SC.pop.d.open){pPop.textContent=[0,1].map(r=>{const c=C[r];return `${nm[r]}: pop ${pop[r]}/${CAP}  adults ${c.ad} (${c.war} warriors)\n  babies ${c.baby}  eggs ${c.egg}  with den ${c.den}/${c.ad}\n  food carried ${c.food}  oil ${c.oil}  swimming ${c.wet}  airborne ${c.air}\n  want ${want[r]}  grudge ${grudge[r]}  alarm ${alarm[r]}  seen ${seen[r]}\n  AGGRESSION ${agg[r].toFixed(0)}/100  army ${wp[r]}  (losses ${losses[r].toFixed(1)}, hunger ${hungry[r].toFixed(1)}, births ${bth[r].toFixed(1)})`}).join('\n')+`\nEvents: eggs laid ${ST.eggs}  hatched ${ST.hatch}  grown ${ST.grown}\n  killed: fights ${ST.fight}  grenades ${ST.bomb}  ufo ${ST.ufo}  burned ${ST.burn}  drowned ${ST.drown}  starved ${ST.starve}\nCare: planted ${ST.plant}  wounded ${ST.wound}  healed ${ST.healed}  died of old age ${ST.old}\nRooms ${ST.rooms}  trees cut ${ST.cut}  floors ${ST.floors}  domes ${ST.domes}  tunnels ${ST.tunnels}  paths sealed ${ST.sealed}\nStructures: planks ${cnt[28]||0}  ladders ${cnt[29]||0}  stores ${cnt[30]||0}  grenades ${cnt[31]||0}  oil ${cnt[5]||0}`;
+  if(SC.pop.d.open){pPop.textContent=[0,1].map(r=>{const c=C[r];return `${nm[r]}: pop ${pop[r]}/${CAP===Infinity?'∞':CAP}  adults ${c.ad} (${c.war} warriors)\n  babies ${c.baby}  eggs ${c.egg}  with den ${c.den}/${c.ad}\n  food carried ${c.food}  oil ${c.oil}  swimming ${c.wet}  airborne ${c.air}\n  want ${want[r]}  grudge ${grudge[r]}  alarm ${alarm[r]}  seen ${seen[r]}\n  AGGRESSION ${agg[r].toFixed(0)}/100  army ${wp[r]}  (losses ${losses[r].toFixed(1)}, hunger ${hungry[r].toFixed(1)}, births ${bth[r].toFixed(1)})`}).join('\n')+`\nEvents: eggs laid ${ST.eggs}  hatched ${ST.hatch}  grown ${ST.grown}\n  killed: fights ${ST.fight}  grenades ${ST.bomb}  ufo ${ST.ufo}  burned ${ST.burn}  drowned ${ST.drown}  starved ${ST.starve}\nCare: planted ${ST.plant}  wounded ${ST.wound}  healed ${ST.healed}  died of old age ${ST.old}\nRooms ${ST.rooms}  trees cut ${ST.cut}  floors ${ST.floors}  domes ${ST.domes}  tunnels ${ST.tunnels}  paths sealed ${ST.sealed}\nStructures: planks ${cnt[28]||0}  ladders ${cnt[29]||0}  stores ${cnt[30]||0}  grenades ${cnt[31]||0}  oil ${cnt[5]||0}`;
     const g=hc.getContext('2d'),mx=Math.max(10,...hist[0],...hist[1]);g.clearRect(0,0,300,50);
     [[0,'#f06ea0'],[1,'#9a5ae1']].forEach(([r,c])=>{g.strokeStyle=c;g.beginPath();hist[r].forEach((v,i)=>{const x=i,y=48-46*v/mx;i?g.lineTo(x,y):g.moveTo(x,y)});g.stroke()})}
   if(SC.insp.d.open){if(!insp)pIn.textContent='nothing selected';else{const i=insp.i,t=insp.t,a=A[i],x=i%W,y=i/W|0,h=HI[i],ad=t===CRE||t===CB,hx=h%W,hy=h/W|0;
